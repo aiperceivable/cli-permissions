@@ -40,6 +40,31 @@ t3.txt.bak. The attached spelling is the only one that also works on GNU.
 Someone reading that a year from now can decide whether it still holds, and can
 find out in one command. That is the standard.
 
+## State all five annotations, including the boring ones
+
+`readonly`, `destructive`, `idempotent`, `requires_approval`, `open_world` — an
+entry at `confidence: verified` should state every one, even where the answer is
+obviously `false`.
+
+**Leaving one out is not neutral.** The schema requires none of them, so an
+absent field means *unknown*, and a consumer reading the corpus alone has to
+treat an unknown consequential property as the conservative answer. In practice
+that costs the command any blanket allow: with `open_world` unstated across the
+corpus, the reference consumer could not justify a single `allow` rule, for
+`cat` or anything else.
+
+`sort` is why this is a check and not a formality. It reads as a pure text
+utility, and `--compress-program=PROG` runs PROG — sort spills to temporary
+files past its buffer and pipes each one through the named program. It had gone
+unannotated, and a consumer equating absent with false would have reported that
+`sort`'s domain of interaction is closed.
+
+For an `authoritative` overlay the check is tractable: the flag list is the
+complete option set, so review every flag and operand for a value that names a
+program to execute or a host to reach, then say so in `provenance.notes` —
+including that the conclusion is only as good as the completeness claim above
+it.
+
 ## The editorial rule
 
 **An entry whose facts you already knew before checking does not earn its

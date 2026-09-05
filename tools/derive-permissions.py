@@ -189,21 +189,33 @@ def derive(overlay: dict) -> Verdict:
         return Verdict(overlay["command"], overlay["variant"], "ask",
                        ["no behavioural annotations"], provenance_line(overlay))
 
-    destructive = ann.get("destructive")
-    readonly = ann.get("readonly")
-    open_world = ann.get("open_world")
-    approval = ann.get("requires_approval")
+    # An absent field means "unknown" and must NOT be read as false — guide §6.
+    # Writing `ann.get("open_world")` and testing it for truth is how this
+    # script originally got it wrong, and `sort` is why that matters: it reads
+    # as a pure text utility and `--compress-program=PROG` runs PROG.
+    def stated(field: str) -> bool | None:
+        return ann[field] if field in ann else None
 
-    if destructive:
+    destructive = stated("destructive")
+    readonly = stated("readonly")
+    open_world = stated("open_world")
+    approval = stated("requires_approval")
+
+    unknown = [f for f in ("destructive", "readonly", "open_world")
+               if stated(f) is None]
+    if unknown:
+        reasons.append(f"unstated: {', '.join(unknown)} (read as unknown, not false)")
+
+    if destructive is True:
         reasons.append("destructive")
-    if open_world:
+    if open_world is True:
         reasons.append("open_world: leaves this machine or runs another program")
-    if approval and not destructive:
+    if approval is True and destructive is not True:
         reasons.append("requires_approval")
 
     # Guide §6: readonly is a claim about local state and says nothing about
     # what the command sends. readonly + open_world is the exfiltration shape.
-    if readonly and open_world:
+    if readonly is True and open_world is True:
         reasons.append("readonly but open_world — the exfiltration shape")
 
     # Guide §5: a flag that may not terminate hangs an agent even on a
@@ -218,17 +230,25 @@ def derive(overlay: dict) -> Verdict:
     if hidden:
         reasons.append(f"writes to disk via {', '.join(hidden)}")
 
-    if destructive or open_world:
+    if destructive is True or open_world is True:
         tier = "deny"
-    elif long_running or hidden or approval:
+    elif long_running or hidden or approval is True:
         tier = "ask"
-    elif readonly:
+    elif readonly is True and open_world is False:
+        # Only a *stated* closed world earns a blanket allow. `readonly` alone
+        # is a claim about local state; without open_world it is not enough.
         tier = "allow"
-    else:
-        # Neither readonly nor destructive: mkdir, touch. They create but do
-        # not destroy, and the format has no word for that.
+    elif readonly is True:
+        tier = "ask"
+        reasons.append("readonly, but nothing states whether it stays local")
+    elif destructive is False and readonly is False:
+        # Neither: mkdir, touch. They create but destroy nothing, and the
+        # format has no word for that — guide §8.
         tier = "ask"
         reasons.append("neither readonly nor destructive")
+    else:
+        tier = "ask"
+        reasons.append("too little stated to judge")
 
     return Verdict(overlay["command"], overlay["variant"], tier, reasons,
                    provenance_line(overlay))
