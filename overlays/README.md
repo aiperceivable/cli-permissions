@@ -3,32 +3,31 @@
 The corpus. One JSON file per `(command, variant)`, named
 `<command>@<variant>.json`.
 
-**This is upstream.** Entries are written and verified here; apexe keeps a
-byte-identical vendored copy and compiles it in. Contributions and corrections
-belong in this repository — see [CONTRIBUTING.md](../CONTRIBUTING.md).
+**This is the only copy.** apexe carries no overlays of its own — it reads this
+directory like any other consumer, through `overlay_dirs`, `~/.apexe/overlays/`,
+or one of the packaged locations it searches. Contributions and corrections
+belong here; see [CONTRIBUTING.md](../CONTRIBUTING.md).
 
-## Why apexe keeps a copy rather than pointing at this one
+## What a consumer loses without this
 
-apexe's built-in set is loaded with `include_str!`, so a missing file is a hard
-compile error rather than a degraded feature. A submodule turns
-`git clone` without `--recursive` into a build failure, and the same coupling
-runs through its tests and `cargo package`. Vendoring keeps that build
-self-contained; `tools/check-vendored.py` is what stops the two drifting.
+Measured rather than assumed. Scanning `tail` with apexe, with and without the
+corpus present:
 
-Dropping the built-ins instead is not an option either, and the cost is
-measured rather than assumed. Removing `tail`'s overlay from apexe and
-rescanning:
-
-| | with the overlay | without |
+| | with the corpus | without |
 |---|---|---|
 | flags | 10 | 9 |
-| `readonly` | `true` | **`false`** |
-| `x-apexe-long-running` on `-f` | present | **gone** |
-| `x-apexe-conflicts-with` | present | **gone** |
+| `readonly` | `true` | `false` |
+| `long_running` on `-f` | present | **gone** |
+| `conflicts_with` | present | **gone** |
 
-`readonly` flipping means the generated ACL stops auto-allowing `tail`; the
-lost `long_running` means nothing warns that `tail -f` never returns. Heuristic
-scanning recovers the flag names and little else.
+Heuristic scanning recovers the flag names and little else. `conflicts_with` and
+`long_running` have no other source at all — no `--help` or man page format
+states either machine-readably, which is the reason overlays exist.
+
+What does *not* degrade is the safety-critical half: name-based inference still
+marks `rm` destructive and approval-requiring, and `tail`'s `readonly` fails
+toward `false` rather than away from it. So a consumer without the corpus is
+less precise, not less careful.
 
 ## Reading a file
 

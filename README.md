@@ -85,9 +85,8 @@ you to, and the four fields that decide an `argv`.
 ## Coverage
 
 **22 commands, 44 entries** across their BSD, GNU and Apple variants — the POSIX
-core plus `sed`. See [`overlays/`](overlays/). This repository is upstream;
-apexe vendors a byte-identical copy, checked by
-[`tools/check-vendored.py`](tools/).
+core plus `sed`. See [`overlays/`](overlays/). This repository is the only copy:
+apexe ships no overlays of its own and reads these like any other consumer.
 
 The corpus is deliberately narrow. An entry that nobody checked against a
 running binary does not belong here, and checking is the slow part.
