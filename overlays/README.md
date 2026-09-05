@@ -1,28 +1,40 @@
 # overlays/
 
-The corpus lands here.
+The corpus. One JSON file per `(command, variant)`, named
+`<command>@<variant>.json`.
 
-It has not migrated yet. Today the verified overlays live in
-[apexe's `overlays/`](https://github.com/aiperceivable/apexe/tree/main/overlays)
-as its built-in set, and the migration is deliberately the **last** step:
-the format is being decoupled from apexe first, and a second, non-apexe consumer
-has to be shown to work before the data moves. Moving it earlier would mean
-publishing a corpus whose only reader is the tool it was extracted from.
+**This is upstream.** Entries are written and verified here; apexe keeps a
+byte-identical vendored copy and compiles it in. Contributions and corrections
+belong in this repository — see [CONTRIBUTING.md](../CONTRIBUTING.md).
 
-Until then, point apexe at its own built-ins — they are already loaded by
-default — and watch this directory.
+## Why apexe keeps a copy rather than pointing at this one
 
-## What a file here looks like
+apexe's built-in set is loaded with `include_str!`, so a missing file is a hard
+compile error rather than a degraded feature. A submodule turns
+`git clone` without `--recursive` into a build failure, and the same coupling
+runs through its tests and `cargo package`. Vendoring keeps that build
+self-contained; `tools/check-vendored.py` is what stops the two drifting.
 
-One JSON file per `(command, variant)`, named `<command>@<variant>.json`:
+Dropping the built-ins instead is not an option either, and the cost is
+measured rather than assumed. Removing `tail`'s overlay from apexe and
+rescanning:
 
-```
-overlays/
-  sed@bsd.json
-  sed@gnu.json
-  find@gnu.json
-```
+| | with the overlay | without |
+|---|---|---|
+| flags | 10 | 9 |
+| `readonly` | `true` | **`false`** |
+| `x-apexe-long-running` on `-f` | present | **gone** |
+| `x-apexe-conflicts-with` | present | **gone** |
 
-Each carries the command's flags, mutual exclusions, operand placement,
-behavioural annotations, and a `provenance` block whose `command` field can be
-re-run verbatim. See [CONTRIBUTING.md](../CONTRIBUTING.md).
+`readonly` flipping means the generated ACL stops auto-allowing `tail`; the
+lost `long_running` means nothing warns that `tail -f` never returns. Heuristic
+scanning recovers the flag names and little else.
+
+## Reading a file
+
+Each carries the command's flags, mutual exclusions, operand placement, the five
+behavioural annotations, and a `provenance` block whose `command` can be re-run
+verbatim. The format is defined by
+[`tool-overlay.schema.json`](https://github.com/aiperceivable/apexe/blob/main/schemas/tool-overlay.schema.json);
+[the consumer guide](https://github.com/aiperceivable/apexe/blob/main/docs/overlay-consumers.md)
+is how to read one without apexe.

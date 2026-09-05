@@ -84,10 +84,10 @@ you to, and the four fields that decide an `argv`.
 
 ## Coverage
 
-**The corpus has not migrated here yet** — see [`overlays/`](overlays/) for where
-it stands and why the move is deliberately last. Today the verified entries ship
-as apexe's built-in set: 22 commands across their BSD, GNU and Apple variants,
-covering the POSIX core plus `sed`.
+**22 commands, 44 entries** across their BSD, GNU and Apple variants — the POSIX
+core plus `sed`. See [`overlays/`](overlays/). This repository is upstream;
+apexe vendors a byte-identical copy, checked by
+[`tools/check-vendored.py`](tools/).
 
 The corpus is deliberately narrow. An entry that nobody checked against a
 running binary does not belong here, and checking is the slow part.
