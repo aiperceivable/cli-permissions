@@ -73,7 +73,11 @@ overlay_dirs:
 or `APEXE_OVERLAY_DIRS=/path/to/cli-permissions/overlays`. Files here outrank
 apexe's built-ins; your own `~/.apexe/overlays/` still outranks these.
 
-**Without apexe** — the files describe the command, not any one tool. See
+**Without apexe** — the files describe the command, not any one tool.
+[`tools/derive-permissions.py`](tools/) is a working reference consumer: it
+turns an overlay directory into `.claude/settings.json` or
+`.agents/permissions.json` rules, in a different language from apexe and sharing
+no code with it. See
 [Reading Overlays Without apexe](https://github.com/aiperceivable/apexe/blob/main/docs/overlay-consumers.md)
 for how to select the overlay that applies, what `mode` and `confidence` oblige
 you to, and the four fields that decide an `argv`.
