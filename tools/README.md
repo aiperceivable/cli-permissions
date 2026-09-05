@@ -8,7 +8,7 @@ assert, that the corpus is usable without apexe.
 
 So it is deliberately handicapped. It is written in a different language from
 apexe, shares no code with it, has no third-party dependencies, and was written
-against [`tool-overlay.schema.json`](https://github.com/aiperceivable/apexe/blob/main/schemas/tool-overlay.schema.json)
+against [`tool-overlay.schema.json`](../schemas/tool-overlay.schema.json)
 and [the consumer guide](https://github.com/aiperceivable/apexe/blob/main/docs/overlay-consumers.md)
 alone. If it needs something those two do not explain, the spec has a gap, and
 the script says so on stderr instead of guessing quietly.

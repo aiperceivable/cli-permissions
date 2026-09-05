@@ -34,6 +34,6 @@ less precise, not less careful.
 Each carries the command's flags, mutual exclusions, operand placement, the five
 behavioural annotations, and a `provenance` block whose `command` can be re-run
 verbatim. The format is defined by
-[`tool-overlay.schema.json`](https://github.com/aiperceivable/apexe/blob/main/schemas/tool-overlay.schema.json);
+[`tool-overlay.schema.json`](../schemas/tool-overlay.schema.json);
 [the consumer guide](https://github.com/aiperceivable/apexe/blob/main/docs/overlay-consumers.md)
 is how to read one without apexe.

@@ -1,4 +1,5 @@
 {
+  "$schema": "https://aiperceivable.github.io/cli-permissions/schemas/tool-overlay.schema.json",
   "schema_version": "1.0",
   "command": "df",
   "variant": "gnu",

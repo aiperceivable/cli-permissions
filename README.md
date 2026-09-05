@@ -73,7 +73,9 @@ overlay_dirs:
 or `APEXE_OVERLAY_DIRS=/path/to/cli-permissions/overlays`. Files here outrank
 apexe's built-ins; your own `~/.apexe/overlays/` still outranks these.
 
-**Without apexe** — the files describe the command, not any one tool.
+**Without apexe** — the files describe the command, not any one tool. The format
+is defined by [`schemas/tool-overlay.schema.json`](schemas/tool-overlay.schema.json),
+which lives here rather than in apexe: apexe is one consumer of it, not its owner.
 [`tools/derive-permissions.py`](tools/) is a working reference consumer: it
 turns an overlay directory into `.claude/settings.json` or
 `.agents/permissions.json` rules, in a different language from apexe and sharing
