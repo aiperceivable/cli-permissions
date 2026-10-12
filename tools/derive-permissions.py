@@ -66,7 +66,10 @@ def load_overlays(directory: Path) -> tuple[list[dict], list[str]]:
         except json.JSONDecodeError as exc:
             skipped.append(f"{path.name} ({exc})")
             continue
-        if doc.get("schema_version") != "1.0":
+        if not isinstance(doc, dict):
+            skipped.append(f"{path.name} (expected a JSON object)")
+            continue
+        if doc.get("schema_version") not in ("1.0", "1.1"):
             skipped.append(f"{path.name} (schema_version {doc.get('schema_version')!r})")
             continue
         doc["_file"] = path.name

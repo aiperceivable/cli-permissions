@@ -61,8 +61,18 @@ entry you cannot re-check is an opinion.
 
 ## Using it
 
-**With [apexe](https://github.com/aiperceivable/apexe)** — clone anywhere and
-point `overlay_dirs` at it:
+**With [apexe](https://github.com/aiperceivable/apexe)** — install and register
+the corpus directly from GitHub:
+
+```bash
+apexe overlays install aiperceivable/cli-permissions
+apexe scan ls --no-cache
+```
+
+The installer reads `manifest.json`, records the resolved commit, and makes the
+overlays available automatically. Pin a branch, tag or commit with `--ref`;
+use `apexe overlays update cli-permissions` to refresh the same reference.
+A manually cloned checkout can also be configured through `overlay_dirs`:
 
 ```yaml
 # ~/.apexe/config.yaml
@@ -70,8 +80,9 @@ overlay_dirs:
   - /path/to/cli-permissions/overlays
 ```
 
-or `APEXE_OVERLAY_DIRS=/path/to/cli-permissions/overlays`. Files here outrank
-apexe's built-ins; your own `~/.apexe/overlays/` still outranks these.
+or `APEXE_OVERLAY_DIRS=/path/to/cli-permissions/overlays`. Configured directories
+outrank managed corpora; your own
+`~/.apexe/overlays/` still outranks both. apexe ships no built-in overlays.
 
 **Without apexe** — the files describe the command, not any one tool. The format
 is defined by [`schemas/tool-overlay.schema.json`](schemas/tool-overlay.schema.json),
@@ -92,6 +103,33 @@ apexe ships no overlays of its own and reads these like any other consumer.
 
 The corpus is deliberately narrow. An entry that nobody checked against a
 running binary does not belong here, and checking is the slow part.
+
+## Corpus metadata and format versions
+
+[`manifest.json`](manifest.json) names the corpus, its release version, description,
+overlay directory, homepage and license. Its definition is
+[`schemas/corpus-manifest.schema.json`](schemas/corpus-manifest.schema.json).
+The corpus release version, manifest format version and overlay format version
+are independent; installations also record the actual Git commit.
+
+Overlay formats 1.0 and 1.1 are supported by the reference consumer. Format
+1.1 adds explicit native-shim capabilities. Only the reviewed BSD cat/head/ls
+entries currently declare order independence and match macOS only, where those
+capabilities were checked. FreeBSD needs separate native-capability evidence.
+Other entries remain scan-only for native shims. Installing a corpus does not install CLI binaries or grant
+permissions. Native shims additionally require matching authoritative overlays
+with reviewed capabilities. See apexe's [authoring procedure](https://github.com/aiperceivable/apexe/blob/main/docs/overlays.md).
+
+Run regression tests from the repository root:
+
+```bash
+python3 -m pip install jsonschema
+python3 -m unittest discover -s tests -v
+```
+
+Schema tests require `jsonschema`; without it they are explicitly skipped. The
+native behavior tests run only on the reviewed macOS 26.3 (25D125) build and
+are skipped on other hosts. They check bounded fixtures, not every invocation.
 
 ## Contributing
 

@@ -25,7 +25,7 @@ Selection is the part worth checking, because it is where a naive consumer goes
 wrong. On the same macOS host, with the same command name:
 
 ```
-$ derive-permissions.py ../apexe/overlays --format report | grep sed
+$ derive-permissions.py ./overlays --format report | grep sed
 sed  bsd  deny  macos macOS 26.5.2, checked 2026-09-05
 
 $ PATH="/opt/homebrew/opt/gnu-sed/libexec/gnubin:$PATH" derive-permissions.py … | grep -A3 sed
@@ -59,3 +59,11 @@ has **no place for the variant**. BSD `sed` and GNU `sed` differ on `open_world`
 and on whether `-i` takes a mandatory argument, and both collapse into one rule.
 The exporter emits the stricter of the two and says so on stderr rather than
 silently picking one.
+
+The reference consumer accepts overlay formats 1.0 and 1.1. Native-shim
+capabilities are retained as data and do not alter its permission derivation.
+Run regression tests from the repository root with:
+
+```bash
+python3 -m unittest discover -s tests -v
+```

@@ -1,12 +1,11 @@
 {
   "$schema": "https://aiperceivable.github.io/cli-permissions/schemas/tool-overlay.schema.json",
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "command": "ls",
   "variant": "bsd",
   "match": {
     "platform": [
-      "macos",
-      "freebsd"
+      "macos"
     ],
     "probe": {
       "args": [
@@ -28,7 +27,7 @@
     "checked_on": "2026-07-27",
     "command": "man -P cat ls | col -b",
     "environment": "macOS 26.3 (Darwin arm64), system /bin/ls",
-    "notes": "BSD ls is not versioned independently of the OS, so the host release identifies the build. It also rejects --version, which is why the bsd probe matches on failure rather than on a banner. conflicts_with was extended in a later pass, after the field's definition widened to cover override groups as well as diagnosed errors: apexe's input is a JSON object, which carries no ordering, so for a last-one-wins group which flag actually wins is decided by the order the caller happened to write the keys in. Every pair added then was run in BOTH orders against the reference build recorded above, and only pairs whose outcome depends on that order, or where one side is silently discarded, were added. value_optional was added on 2026-08-24 and established behaviourally on the build recorded above, since a BSD man page has no notation for an optional option argument: each candidate was run in BOTH spellings and marked only when the separated form demonstrably lost the value. `ls --color never .` is \"ls: never: No such file or directory\" (exit 1) AND still emits colour escapes, so the caller's request is inverted rather than merely dropped, while `ls --color=never .` exits 0 with colour off. It is the only long option on this build that takes a value.\n\nopen_world IS SET FALSE BY ENUMERATION, not by assumption. This overlay is `mode: authoritative`, which asserts its flag list is the complete option set for this variant, so the question \"can any invocation of this command reach off the machine or run another program?\" is answerable from the overlay itself. Every flag and operand was reviewed for a value that names a program to execute or a host to reach; none does. The command has no such capability of its own either -- it opens no sockets and spawns no children.\n\nThe check is only as good as the `authoritative` claim above it: a flag missing from this file is a capability missing from this conclusion. It was worth making anyway, because leaving the field unstated is not neutral -- a consumer reading the corpus alone must treat an absent annotation as unknown, and an unknown open_world costs the command any blanket allow. `sort` is the counter-example that made this a check rather than a formality: it reads as a pure text utility and `--compress-program=PROG` runs PROG, so it is annotated true."
+    "notes": "BSD ls is not versioned independently of the OS, so the host release identifies the build. It also rejects --version, which is why the bsd probe matches on failure rather than on a banner. conflicts_with was extended in a later pass, after the field's definition widened to cover override groups as well as diagnosed errors: apexe's input is a JSON object, which carries no ordering, so for a last-one-wins group which flag actually wins is decided by the order the caller happened to write the keys in. Every pair added then was run in BOTH orders against the reference build recorded above, and only pairs whose outcome depends on that order, or where one side is silently discarded, were added. value_optional was added on 2026-08-24 and established behaviourally on the build recorded above, since a BSD man page has no notation for an optional option argument: each candidate was run in BOTH spellings and marked only when the separated form demonstrably lost the value. `ls --color never .` is \"ls: never: No such file or directory\" (exit 1) AND still emits colour escapes, so the caller's request is inverted rather than merely dropped, while `ls --color=never .` exits 0 with colour off. It is the only long option on this build that takes a value.\n\nopen_world IS SET FALSE BY ENUMERATION, not by assumption. This overlay is `mode: authoritative`, which asserts its flag list is the complete option set for this variant, so the question \"can any invocation of this command reach off the machine or run another program?\" is answerable from the overlay itself. Every flag and operand was reviewed for a value that names a program to execute or a host to reach; none does. The command has no such capability of its own either -- it opens no sockets and spawns no children.\n\nThe check is only as good as the `authoritative` claim above it: a flag missing from this file is a capability missing from this conclusion. It was worth making anyway, because leaving the field unstated is not neutral -- a consumer reading the corpus alone must treat an absent annotation as unknown, and an unknown open_world costs the command any blanket allow. `sort` is the counter-example that made this a check rather than a formality: it reads as a pure text utility and `--compress-program=PROG` runs PROG, so it is annotated true.\n\nNative shim capability check, 2026-10-12, macOS 26.3 (25D125): These native assertions are limited to macOS; FreeBSD needs a separately verified entry. Read the complete macOS 26.3 man page and verified /bin/ls -la on temporary files. Checked 967 previously non-conflicting boolean/optional-value flag pairs in both orders against a temporary fixture with ordinary, whitespace/control-character names, a directory and a symlink. The 16 pairs with differing output are now recorded as symmetric conflicts. stdin is not inherited. The LEGACY DESCRIPTION section explains that -g, -n and -o do not turn on -l in legacy mode; on this build the default mode does, including -g despite its main option description saying no effect. Comparing /bin/ls -g FIXTURE with /bin/ls -l FIXTURE confirms that -g also omits the owner column in the default mode. These checks establish the bounded pilot grammar, not behavioral certification of every possible invocation. Re-run the bounded pair checks with python3 -m unittest discover -s tests -v."
   },
   "description": "List directory contents. For each operand naming a file other than a directory, ls displays its name plus any requested associated information; for each operand naming a directory, it displays the names of the files contained within.",
   "flags": [
@@ -46,7 +45,9 @@
       "short": "-B",
       "type": "boolean",
       "conflicts_with": [
-        "-q"
+        "-q",
+        "-b",
+        "-w"
       ],
       "description": "Force printing of non-printable characters in file names as \\xxx octal escapes."
     },
@@ -57,7 +58,10 @@
         "-l",
         "-m",
         "-x",
-        "-1"
+        "-1",
+        "-g",
+        "-n",
+        "-o"
       ],
       "description": "Force multi-column output; the default when output is to a terminal."
     },
@@ -73,7 +77,10 @@
     {
       "short": "-F",
       "type": "boolean",
-      "description": "Append a type indicator to each pathname (/ directory, * executable, @ symlink, = socket, % whiteout, | FIFO)."
+      "description": "Append a type indicator to each pathname (/ directory, * executable, @ symlink, = socket, % whiteout, | FIFO).",
+      "conflicts_with": [
+        "-p"
+      ]
     },
     {
       "short": "-G",
@@ -164,7 +171,9 @@
       "short": "-b",
       "type": "boolean",
       "conflicts_with": [
-        "-q"
+        "-q",
+        "-B",
+        "-w"
       ],
       "description": "As -B, but use C escape codes whenever possible."
     },
@@ -212,7 +221,13 @@
     {
       "short": "-g",
       "type": "boolean",
-      "description": "No effect; accepted only for 4.3BSD compatibility."
+      "description": "Accepted for 4.3BSD compatibility. In the default mode, turns on long output and omits the owner name; in legacy mode it does not turn on -l.",
+      "conflicts_with": [
+        "-C",
+        "-m",
+        "-x",
+        "-1"
+      ]
     },
     {
       "short": "-h",
@@ -253,24 +268,42 @@
         "-C",
         "-l",
         "-x",
-        "-1"
+        "-1",
+        "-g",
+        "-n",
+        "-o"
       ],
       "description": "Stream output format: list files across the page, separated by commas."
     },
     {
       "short": "-n",
       "type": "boolean",
-      "description": "Display user and group IDs numerically in long output. Turns on -l."
+      "description": "Display user and group IDs numerically in long output. Turns on -l.",
+      "conflicts_with": [
+        "-C",
+        "-m",
+        "-x",
+        "-1"
+      ]
     },
     {
       "short": "-o",
       "type": "boolean",
-      "description": "List in long format but omit the group id."
+      "description": "List in long format but omit the group id.",
+      "conflicts_with": [
+        "-C",
+        "-m",
+        "-x",
+        "-1"
+      ]
     },
     {
       "short": "-p",
       "type": "boolean",
-      "description": "Write a slash after each filename that is a directory."
+      "description": "Write a slash after each filename that is a directory.",
+      "conflicts_with": [
+        "-F"
+      ]
     },
     {
       "short": "-q",
@@ -325,7 +358,9 @@
       "short": "-w",
       "type": "boolean",
       "conflicts_with": [
-        "-q"
+        "-q",
+        "-B",
+        "-b"
       ],
       "description": "Force raw printing of non-printable characters."
     },
@@ -336,7 +371,10 @@
         "-C",
         "-l",
         "-m",
-        "-1"
+        "-1",
+        "-g",
+        "-n",
+        "-o"
       ],
       "description": "Like -C, but sort multi-column entries across rather than down."
     },
@@ -357,7 +395,10 @@
         "-C",
         "-l",
         "-m",
-        "-x"
+        "-x",
+        "-g",
+        "-n",
+        "-o"
       ],
       "description": "Force output to be one entry per line."
     },
@@ -382,5 +423,8 @@
     "idempotent": true,
     "requires_approval": false,
     "open_world": false
-  }
+  },
+  "short_flag_bundling": true,
+  "streaming_stdin_safe": false,
+  "cross_flag_ordering": false
 }

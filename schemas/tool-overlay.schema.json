@@ -37,9 +37,22 @@
       "type": "string"
     },
     "schema_version": {
-      "description": "Overlay format version. Only \"1.0\" is currently accepted.",
+      "description": "Overlay format version. Versions 1.0 and 1.1 are accepted; 1.1 adds explicit native-shim grammar capabilities.",
       "type": "string",
-      "const": "1.0"
+      "enum": ["1.0", "1.1"]
+    },
+    "short_flag_bundling": {
+      "description": "Human assertion that short flags may be combined and a valued short flag may consume the remaining token. Absent means unverified, not true.",
+      "type": "boolean"
+    },
+    "streaming_stdin_safe": {
+      "description": "Human assertion that inherited stdin is data rather than a program or configuration channel that bypasses argv governance. Never inferred by the scanner.",
+      "type": "boolean",
+      "default": false
+    },
+    "cross_flag_ordering": {
+      "description": "Whether accepted invocations depend on order across distinct flag properties. False asserts order independence within the declared mutual-exclusion constraints; absent means unverified. True or absent excludes native shims.",
+      "type": "boolean"
     },
     "command": {
       "description": "Command name this overlay describes, e.g. \"ls\" (never a path).",

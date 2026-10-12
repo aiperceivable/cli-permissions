@@ -66,9 +66,9 @@ the transcribed ones cost the corpus the only thing that distinguishes it.
 ## Relationship to apexe
 
 [apexe](https://github.com/aiperceivable/apexe) is the first consumer and the
-source of the format, not the owner of these facts. It ships a small built-in
-set — deliberately short, as a proof that the mechanism works end to end — and
-reads this corpus through `overlay_dirs`.
+source of the format, not the owner of these facts. It ships no built-in
+overlays and reads this corpus through managed Git installations or
+`overlay_dirs`.
 
 The dependency runs one way. This repository consumes apexe's schema and
 loading protocol; apexe does not depend on this repository to build, test or
