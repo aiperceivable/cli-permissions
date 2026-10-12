@@ -65,14 +65,28 @@ entry you cannot re-check is an opinion.
 the corpus directly from GitHub:
 
 ```bash
-apexe overlays install aiperceivable/cli-permissions
+apexe overlays install https://github.com/aiperceivable/cli-permissions
 apexe scan ls --no-cache
 ```
 
 The installer reads `manifest.json`, records the resolved commit, and makes the
 overlays available automatically. Pin a branch, tag or commit with `--ref`;
 use `apexe overlays update cli-permissions` to refresh the same reference.
-A manually cloned checkout can also be configured through `overlay_dirs`:
+For local overlay development, read the current working directory directly:
+
+```bash
+# From the apexe checkout, with cli-permissions checked out alongside it.
+APEXE_OVERLAY_DIRS=../cli-permissions/overlays apexe scan ls --no-cache
+```
+
+This includes uncommitted edits without installing a snapshot. The variable
+applies only to this scan; repeat the scan after editing an overlay. Refresh
+enabled shims with `apexe env --reload` if the eligible command set changes.
+`apexe overlays install ../cli-permissions` instead installs a managed snapshot
+of the local Git repository's committed content.
+
+A checkout may also be configured persistently through `overlay_dirs`:
+
 
 ```yaml
 # ~/.apexe/config.yaml
