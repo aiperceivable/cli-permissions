@@ -270,6 +270,11 @@
           "type": "boolean",
           "default": false
         },
+        "digit_value": {
+          "description": "A bare `-<digits>` token is this flag's value rather than a flag of its own, as in `head -20` and `tail -20`. Only a probe establishes it: the man page documents `-n count`, and both BSD binaries special-case the token before getopt(3), so an overlay read off the document cannot discover it. It belongs to one flag rather than the whole command because `-N` is not one rule — `git log -5` counts commits while `ls -5` is rejected. At most one flag per command may carry it; a second declaration is ambiguous. Reaches the emitted contract as the JSON Schema extension keyword \"x-apexe-digit-value\" on the flag's property.",
+          "type": "boolean",
+          "default": false
+        },
         "before_operands": {
           "description": "Render this flag before the command's operands rather than after. The companion to positionalArg.before_flags, and the reason placement cannot be one boolean on the operand: `find` puts two classes of dash-token on opposite sides of the same operand. Its true options must precede the paths (`find dir -L` is \"unknown primary or operator\") while its primaries must follow them (`find -name '*.txt' dir` is \"illegal option -- n\"). Set it on the options only. Not derivable from a scan — the usage line does not say which of a tool's dash-tokens live in the trailing operand slot — so it is stated here or not at all.",
           "type": "boolean",
