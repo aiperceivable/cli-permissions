@@ -285,6 +285,16 @@
           "type": "boolean",
           "default": false
         },
+        "risk": {
+          "description": "What sending this flag does beyond passing its value. Three-state with absence: absent leaves the decision to inference, `escalates` puts the call to the approval gate only when the caller supplies the flag, `executes` is refused outright because the value is a command the tool would run, and `benign` overrules the name-based floor where spelling is a coincidence (`bsdtar -y` is bzip2, `sort -f` folds case). Only a human raises it, after reading what the flag does. Reaches the emitted contract as `x-apexe-escalates` (three-state) or `x-apexe-exec` on the flag's property.",
+          "enum": ["none", "benign", "escalates", "executes"],
+          "default": "none"
+        },
+        "opaque_after": {
+          "description": "This flag and every token after it are forwarded verbatim, because the tool stops interpreting its own argv at this point: `python3 -m pytest -q` passes `-q` to pytest, and `python3 -c 'code' arg` passes `arg` to the code. Use it when the tail starts at a flag's value rather than at an operand, which is the form an operand cannot express. Execution still forwards the caller's original argv; the marker only stops validation.",
+          "type": "boolean",
+          "default": false
+        },
         "default": { "type": "string" },
         "enum_values": {
           "type": "array",
@@ -304,6 +314,16 @@
         "variadic": { "type": "boolean", "default": false },
         "before_flags": {
           "description": "Render this operand before the command's flags rather than after. The default matches the usual `tool [options] operands` grammar. Set it for a `find`-shaped grammar — `find path ... [expression]` — where the options are per-file predicates that must follow the operands: `find -name '*.txt' dir` is rejected outright (\"illegal option -- n\") while `find dir -name '*.txt'` works. Not derivable from a scan, because the usage line does not say which of a tool's options live in the trailing operand slot: find's predicates are documented in PRIMARIES, not in the synopsis. Stated here or not at all.",
+          "type": "boolean",
+          "default": false
+        },
+        "risk": {
+          "description": "What sending this operand does beyond passing its value. The same three-state assertion a flag carries, and it exists because some tools put their only write in an operand: `uniq INPUT OUTPUT` truncates and rewrites OUTPUT while `uniq` with no operand writes nothing, so a command-level `destructive` would either gate every read-only pipeline or let an unattended write through. Marking the operand puts the gate on the property the caller actually fills; `executes` on an operand is refused outright. Reaches the emitted contract as `x-apexe-escalates` or `x-apexe-exec` on that property.",
+          "enum": ["none", "benign", "escalates", "executes"],
+          "default": "none"
+        },
+        "opaque_after": {
+          "description": "This operand and every token after it are forwarded verbatim, because the tool stops interpreting its own argv at its script: `node script.js --flag` and `bun run src/index.ts --help` hand the tail to the script. Valid only on the last, variadic operand — a later declared operand would have nothing left to match. Only a human can assert it; a usage line does not say where parsing stops.",
           "type": "boolean",
           "default": false
         }
