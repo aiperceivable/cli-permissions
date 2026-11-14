@@ -85,13 +85,17 @@
     {
       "short": "-G",
       "type": "boolean",
+      "conflicts_with": [
+        "--color"
+      ],
       "description": "Enable colorized output, equivalent to --color=auto."
     },
     {
       "short": "-H",
       "type": "boolean",
       "conflicts_with": [
-        "-P"
+        "-P",
+        "-L"
       ],
       "description": "Follow symbolic links given on the command line."
     },
@@ -104,7 +108,8 @@
       "short": "-L",
       "type": "boolean",
       "conflicts_with": [
-        "-P"
+        "-P",
+        "-H"
       ],
       "description": "Follow all symbolic links to their final target and list that instead of the link."
     },
@@ -189,6 +194,9 @@
     {
       "long": "--color",
       "type": "enum",
+      "conflicts_with": [
+        "-G"
+      ],
       "value_name": "when",
       "value_optional": true,
       "enum_values": [
