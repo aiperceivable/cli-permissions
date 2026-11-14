@@ -337,6 +337,18 @@
         "destructive": { "type": "boolean" },
         "idempotent": { "type": "boolean" },
         "requires_approval": { "type": "boolean" },
+        "approval_flags": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true,
+          "description": "Schema property names whose presence puts the call to a human. The flag-scoped counterpart of requires_approval, for tools where a blanket mark is wrong in both directions: find reads the filesystem unless -delete or -exec is given, so gating every find makes it unusable while leaving it ungated runs arbitrary programs without asking. Every name must exist in the module's schema; apexe drops the whole list, and logs the unknown name, when one does not."
+        },
+        "writes_with": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true,
+          "description": "Schema property names whose presence means the call may write, read by the path guard to choose the access mode per call. Empty inherits approval_flags, because the two answer one question -- which arguments are the dangerous ones -- and a second hand-maintained list is a second thing to drift."
+        },
         "open_world": {
           "description": "Whether the command reaches beyond the machine it runs on, or hands its arguments to another program to run. Inference for this one is name-based -- an executable on a known list (curl, ssh, rsync, ...) or a networked subcommand (push, clone, login, ...) -- so it is a floor, and it cannot see a boundary a command's name does not advertise. The overlay is the only place the truth can be stated per variant, and the variant is often exactly where the difference lives: GNU sed runs its replacement as a shell command for `s///e`, while BSD sed rejects the `e` flag outright with \"bad flag in substitute command\". One name, two answers, which no name list can separate. Set it when the command opens a socket, spawns another program, or otherwise leaves the sandbox; leave it unset to keep whatever inference decided. Note that `destructive` outranks it wherever a consumer reduces these annotations to one risk level.",
           "type": "boolean"
