@@ -326,6 +326,11 @@
           "description": "This operand and every token after it are forwarded verbatim, because the tool stops interpreting its own argv at its script: `node script.js --flag` and `bun run src/index.ts --help` hand the tail to the script. Valid only on the last, variadic operand — a later declared operand would have nothing left to match. Only a human can assert it; a usage line does not say where parsing stops.",
           "type": "boolean",
           "default": false
+        },
+        "tail_parsed": {
+          "description": "This operand starts a trailing mini-language that is parsed rather than forwarded, as in `find path ... [expression]`. The complement of opaque_after, not a variant of it: the tail's flag-shaped tokens are resolved against the declared flags, so `-delete` reaches the approval gate and the path guard instead of being hidden inside an unvalidated tail. The boundary is the first token matching a declared trailing flag; tokens before it are the leading operand's values. A token no flag explains refuses the call and names the token — `find . -exec rm {} \\;` is another program's argv and the honest ceiling. Valid only on the last, variadic operand, with every earlier operand marked before_flags. Reaches the emitted contract as the JSON Schema extension keyword \"x-apexe-tail-parsed\" on that property. Declaring both it and opaque_after is refused.",
+          "type": "boolean",
+          "default": false
         }
       }
     },
