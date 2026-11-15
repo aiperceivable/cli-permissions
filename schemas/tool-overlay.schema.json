@@ -370,6 +370,10 @@
           "uniqueItems": true,
           "description": "Schema property names whose presence means the call may write, read by the path guard to choose the access mode per call. Empty inherits approval_flags, because the two answer one question -- which arguments are the dangerous ones -- and a second hand-maintained list is a second thing to drift."
         },
+        "computes_paths": {
+          "type": "boolean",
+          "description": "This command computes filesystem paths inside its own logic, so its argv is not the whole story: `sed 'w /etc/x' file`, `awk system(...)`, `python -c`. A child-execution analysis can only check paths that appear as arguments; a module marked here must not be admitted by that analysis and needs a confinement backend or an explicit trust decision. Absent means no such claim, not verified-safe."
+        },
         "open_world": {
           "description": "Whether the command reaches beyond the machine it runs on, or hands its arguments to another program to run. Inference for this one is name-based -- an executable on a known list (curl, ssh, rsync, ...) or a networked subcommand (push, clone, login, ...) -- so it is a floor, and it cannot see a boundary a command's name does not advertise. The overlay is the only place the truth can be stated per variant, and the variant is often exactly where the difference lives: GNU sed runs its replacement as a shell command for `s///e`, while BSD sed rejects the `e` flag outright with \"bad flag in substitute command\". One name, two answers, which no name list can separate. Set it when the command opens a socket, spawns another program, or otherwise leaves the sandbox; leave it unset to keep whatever inference decided. Note that `destructive` outranks it wherever a consumer reduces these annotations to one risk level.",
           "type": "boolean"
