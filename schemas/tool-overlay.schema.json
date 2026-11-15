@@ -107,6 +107,17 @@
       "type": "boolean",
       "default": false,
       "description": "This command's own parser honours `--` as an end-of-options separator. Set it and a value that legitimately begins with `-` is passed through behind `--` instead of being refused: every one of find's expression primaries starts with a dash, and `-f` exists precisely to introduce a path that would otherwise parse as one. Leave it unset and such a value is still refused, which is the right answer for a command nobody has checked — `--` in the wrong position produces an invocation that fails rather than one that is merely rejected (`find . -- -name '*.txt'` is \"unknown primary or operator\" on BSD and \"unknown predicate `--'\" on GNU). Not derivable from a scan; verify on a real installation by running `tool -- <operand>` and `tool <operand> -- <rest>` and record both outcomes in provenance.notes. Note that `--` protects the operand slot from being read as options; it does not rescue an operand whose own value begins with `-` if the command re-parses operands in a second pass, as find does."
+    },
+    "tail_tokens": {
+      "description": "Non-dash tokens that belong to a parsed trailing mini-language, e.g. `find`'s expression operators `(`, `)`, `!` and `,`. They are neither flags (no dash) nor operand values, so a tail that is parsed rather than forwarded needs a third category. One opens the tail exactly like a declared flag; inside it they are skipped while every flag is still resolved. Only meaningful when the last positional arg declares `tail_parsed`; apexe refuses the file otherwise. `;`, `+` and `{}` are refused: they are `-exec`'s terminators, and skipping one would let `-exec utility ;` run a program. Reaches the emitted contract as the JSON Schema extension keyword \"x-apexe-tail-literal\" at the schema root.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "^[^-]",
+        "not": { "enum": [";", "+", "{}"] }
+      },
+      "default": []
     }
   },
   "$defs": {
@@ -324,6 +335,11 @@
         },
         "opaque_after": {
           "description": "This operand and every token after it are forwarded verbatim, because the tool stops interpreting its own argv at its script: `node script.js --flag` and `bun run src/index.ts --help` hand the tail to the script. Valid only on the last, variadic operand — a later declared operand would have nothing left to match. Only a human can assert it; a usage line does not say where parsing stops.",
+          "type": "boolean",
+          "default": false
+        },
+        "tail_parsed": {
+          "description": "This operand starts a trailing mini-language that is parsed rather than forwarded, as in `find path ... [expression]`. The complement of opaque_after, not a variant of it: the tail's flag-shaped tokens are resolved against the declared flags, so `-delete` reaches the approval gate and the path guard instead of being hidden inside an unvalidated tail. The boundary is the first token matching a declared trailing flag or a declared tail token; tokens before it are the leading operand's values. A token no flag explains refuses the call and names the token — `find . -exec rm {} \\;` is another program's argv and the honest ceiling. Valid only on the last, variadic operand, with every earlier operand marked before_flags. Reaches the emitted contract as the JSON Schema extension keyword \"x-apexe-tail-parsed\" on that property. Declaring both it and opaque_after is refused.",
           "type": "boolean",
           "default": false
         }
