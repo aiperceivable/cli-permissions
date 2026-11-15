@@ -631,25 +631,29 @@
       "short": "-exec",
       "type": "string",
       "value_name": "COMMAND ;",
-      "description": "Execute COMMAND; true if its exit status is 0. Everything up to a ';' argument is taken to be part of the command, and '{}' is replaced by the current file name. In the alternative form terminated by '{} +', '{}' is replaced with as many file names as fit on one command line, the primary is always true, and find returns a non-zero exit status if at least one invocation did. The command runs from the directory find was started in."
+      "description": "Execute COMMAND; true if its exit status is 0. Everything up to a ';' argument is taken to be part of the command, and '{}' is replaced by the current file name. In the alternative form terminated by '{} +', '{}' is replaced with as many file names as fit on one command line, the primary is always true, and find returns a non-zero exit status if at least one invocation did. The command runs from the directory find was started in.",
+      "exec_list": true
     },
     {
       "short": "-execdir",
       "type": "string",
       "value_name": "COMMAND ;",
-      "description": "Like -exec, but the command runs from the directory holding the matched file and '{}' expands to a name relative to it. Both the ';' and '{} +' terminators are accepted."
+      "description": "Like -exec, but the command runs from the directory holding the matched file and '{}' expands to a name relative to it. Both the ';' and '{} +' terminators are accepted.",
+      "exec_list": true
     },
     {
       "short": "-ok",
       "type": "string",
       "value_name": "COMMAND ;",
-      "description": "Like -exec, but prompt on standard error first and run the command only if the answer begins with 'y' or 'Y'. Only the ';' terminator is accepted."
+      "description": "Like -exec, but prompt on standard error first and run the command only if the answer begins with 'y' or 'Y'. Only the ';' terminator is accepted.",
+      "exec_list": true
     },
     {
       "short": "-okdir",
       "type": "string",
       "value_name": "COMMAND ;",
-      "description": "Like -execdir, but prompt on standard error first and run the command only if the answer begins with 'y' or 'Y'. Only the ';' terminator is accepted."
+      "description": "Like -execdir, but prompt on standard error first and run the command only if the answer begins with 'y' or 'Y'. Only the ';' terminator is accepted.",
+      "exec_list": true
     },
     {
       "short": "-not",

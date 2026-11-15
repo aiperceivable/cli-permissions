@@ -306,6 +306,11 @@
           "type": "boolean",
           "default": false
         },
+        "exec_list": {
+          "description": "This flag introduces another program's argv, ended by `;` or `+`, as in `find -exec rm {} \\;`. The resolver collects the tokens instead of classifying them as this command's flags; the child-execution policy then decides whether the list may run (`refuse` by default, `analyze` to resolve the program to its own module). Requires a parsed tail on the route and the flag's property in `approval_flags`; an embedded command must never be reachable without the parent approval. Only an overlay can declare it: a usage line does not say machine-readably that the value is a whole command list.",
+          "type": "boolean",
+          "default": false
+        },
         "default": { "type": "string" },
         "enum_values": {
           "type": "array",
