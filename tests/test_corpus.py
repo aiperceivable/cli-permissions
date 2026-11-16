@@ -16,6 +16,25 @@ CONSUMER = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = CONSUMER
 SPEC.loader.exec_module(CONSUMER)
 
+HAS_JSONSCHEMA = importlib.util.find_spec("jsonschema") is not None
+REQUIRE_JSONSCHEMA = os.environ.get("CI_REQUIRE_SCHEMA") == "1"
+
+
+def json_schema_test(function):
+    """Run a schema test, or fail where CI promised to provide jsonschema.
+
+    A skipped schema test is not a passing one: without jsonschema the corpus is
+    never validated against the format it claims, so CI sets
+    CI_REQUIRE_SCHEMA=1 and a skip becomes a failure.
+    """
+    if HAS_JSONSCHEMA:
+        return function
+    if REQUIRE_JSONSCHEMA:
+        def unavailable(self):
+            self.fail("jsonschema is required in CI; schema validation must not be skipped")
+        return unavailable
+    return unittest.skip("Requires jsonschema")(function)
+
 
 class CorpusTests(unittest.TestCase):
     def test_loader_accepts_both_supported_overlay_versions(self):
@@ -64,7 +83,7 @@ class CorpusTests(unittest.TestCase):
         self.assertTrue((ROOT / manifest["overlay_directory"]).is_dir())
         self.assertNotEqual(manifest["version"], "")
 
-    @unittest.skipUnless(importlib.util.find_spec("jsonschema"), "Requires jsonschema")
+    @json_schema_test
     def test_manifest_and_every_overlay_satisfy_their_schemas(self):
         import jsonschema
         for schema_name, documents in [
@@ -95,7 +114,7 @@ class CorpusTests(unittest.TestCase):
         self.assertEqual(overlays, [])
         self.assertEqual(len(skipped), 5)
 
-    @unittest.skipUnless(importlib.util.find_spec("jsonschema"), "Requires jsonschema")
+    @json_schema_test
     def test_manifest_schema_rejects_invalid_metadata(self):
         import jsonschema
         schema = json.loads((ROOT / "schemas/corpus-manifest.schema.json").read_text())
@@ -115,7 +134,7 @@ class CorpusTests(unittest.TestCase):
                     self.assertTrue(list(validator.iter_errors(dict(manifest, **{key: value}))))
         self.assertTrue(list(validator.iter_errors(dict(manifest, unexpected=True))))
 
-    @unittest.skipUnless(importlib.util.find_spec("jsonschema"), "Requires jsonschema")
+    @json_schema_test
     def test_manifest_schema_accepts_semver_and_relative_directories(self):
         import jsonschema
         schema = json.loads((ROOT / "schemas/corpus-manifest.schema.json").read_text())

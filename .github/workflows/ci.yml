@@ -1,0 +1,36 @@
+name: Corpus CI
+
+# Every push is checked; nothing here publishes. A release is a tag and a
+# deliberate act, not a side effect of merging.
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate corpus
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Install validation dependencies
+        run: |
+          set -euo pipefail
+          python3 -m venv .venv
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/python -m pip install jsonschema
+
+      - name: Regression tests
+        env:
+          # A missing jsonschema means the schema checks silently vanish, and
+          # "all tests passed" would then mean "the corpus was never validated
+          # against the format it claims". Local runs may skip; CI may not.
+          CI_REQUIRE_SCHEMA: "1"
+        run: .venv/bin/python -m unittest discover -s tests -v
+
+      - name: Archive is reproducible
+        run: .venv/bin/python tools/package-corpus.py --check

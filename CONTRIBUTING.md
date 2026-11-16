@@ -96,6 +96,70 @@ cannot produce — bundled BSD usage lines, mutual exclusion, operand placement.
 8. Validate against the schema.
 9. Open a PR describing what you ran, not what you concluded.
 
+## Version numbers
+
+Three numbers exist and they move independently. Confusing them is the most
+common way to publish something a consumer cannot verify.
+
+| Number | Where | What it answers | When it changes |
+| --- | --- | --- | --- |
+| corpus release `version` | `manifest.json` | which reviewed snapshot this is | every release |
+| manifest format `schema_version` | `manifest.json` | how the manifest may be parsed | only when a consumer must change |
+| overlay format `schema_version` | each overlay file | how that overlay may be parsed | only when overlay parsing changes |
+
+The release `version` is bare SemVer (`0.2.0`); the Git tag is the same number
+with a `v` prefix (`v0.2.0`). Both must describe the same bytes, so the tag is
+derived from the manifest rather than typed: `tools/tag-release.sh` does that
+and refuses the release when they disagree.
+
+Choose the increment by what a consumer would have to do:
+
+- **patch** — descriptions, provenance, metadata; no admission behaviour changes.
+- **minor** — a command, flag or route is added, so the declared surface
+  *widens*. A previously refused call may now be allowed; that is a security
+  relevant change, not a patch.
+- **major** — routes are removed or tightened, an annotation changes meaning
+  (for example `readonly` becomes `destructive`), or `schema_version` changes.
+
+Format versions are not release versions. Adding overlays or correcting flags
+never changes `schema_version`; it changes `version`.
+
+## Releasing
+
+Releases are tags, and tags are deliberate. Pushing to `main` validates the
+corpus but publishes nothing.
+
+1. Bump `version` in `manifest.json` using the rule above.
+2. Add a `## [<version>]` section to [`CHANGELOG.md`](CHANGELOG.md) — what
+   changed, and why a consumer should care. The GitHub release adds the
+   machine-readable overlay diff; this section is the part a script cannot
+   write.
+3. Commit both, merge to `main`, and let CI pass on that commit.
+4. Run `tools/tag-release.sh --push`. It checks the working tree, `origin/main`,
+   the changelog section, monotonic version order, a unique tag name and that
+   the archive builds, then creates and pushes the tag.
+5. The release workflow re-verifies the same facts, builds the archive, and
+   attaches `cli-permissions-v<version>.tar.gz`, its `.sha256`, the stable
+   alias `cli-permissions.tar.gz` and its `.sha256`.
+
+`workflow_dispatch` accepts an **existing** tag only, for republishing a
+release whose assets failed to upload. It never accepts a version number that
+has no tag.
+
+### Failure policy
+
+These are not preferences; each one protects the identity a consumer pins.
+
+- **A published tag is never moved and never deleted.** If the tag is wrong,
+  release the next patch instead. The one exception is a tag that was rejected
+  before any asset existed and that no consumer could have pinned; deleting it
+  must be recorded in the issue that explains why.
+- **An uploaded asset is never replaced.** Re-uploading different bytes under
+  the same version makes every recorded sha256 meaningless.
+- **A version number maps to exactly one byte sequence.** That is why the
+  version must be greater than the previous tag, and why the archive must be
+  reproducible from it.
+
 ## Corrections
 
 A wrong entry is worse than a missing one, because `mode: authoritative` lets it

@@ -124,7 +124,27 @@ running binary does not belong here, and checking is the slow part.
 overlay directory, homepage and license. Its definition is
 [`schemas/corpus-manifest.schema.json`](schemas/corpus-manifest.schema.json).
 The corpus release version, manifest format version and overlay format version
-are independent; installations also record the actual Git commit.
+are independent; an installation records the release version and an identity
+for the exact bytes it loaded — a Git commit for a checkout source, the archive
+sha256 for a release source.
+
+### Release artifacts
+
+Releases are cut by tag; the procedure and the version-increment rules are in
+[CONTRIBUTING.md](CONTRIBUTING.md#releasing). Each release attaches
+`cli-permissions-v<version>.tar.gz` with a `.sha256` sidecar, plus the stable
+alias `cli-permissions.tar.gz` so the newest release can be fetched without an
+API call from `/releases/latest/download/`.
+
+Verify before unpacking:
+
+```sh
+shasum -a 256 -c cli-permissions-v0.1.0.tar.gz.sha256
+```
+
+The archive contains `manifest.json`, `overlays/`, `schemas/` and the repository
+documents. It is data, not a grant: installing it neither installs CLI binaries
+nor widens access by itself.
 
 Overlay formats 1.0 and 1.1 are supported by the reference consumer. Format
 1.1 adds explicit native-shim capabilities. Only the reviewed BSD cat/head/ls
