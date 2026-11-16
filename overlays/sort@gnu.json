@@ -346,6 +346,9 @@
     "destructive": false,
     "idempotent": true,
     "requires_approval": true,
+    "approval_flags": [
+      "output"
+    ],
     "open_world": false
   }
 }

@@ -53,6 +53,30 @@ that costs the command any blanket allow: with `open_world` unstated across the
 corpus, the reference consumer could not justify a single `allow` rule, for
 `cat` or anything else.
 
+### A ceiling is not a verdict
+
+`requires_approval: true` alone means **every call** to the command needs
+approval, because a consumer cannot tell which argument made it consequential.
+When the tool has one such argument, state both: the boolean is the ceiling, and
+`approval_flags` names the schema properties that reach it. A consumer can then
+stand the gate down for calls that send none of them.
+
+```json
+"annotations": {
+  "readonly": false,
+  "destructive": false,
+  "idempotent": true,
+  "requires_approval": true,
+  "approval_flags": ["output"],
+  "open_world": false
+}
+```
+
+`sort` is why this matters: a blanket mark prompted on every invocation,
+including `sort file`. Listing `output` keeps `sort -o FILE` behind the gate and
+leaves the read-only pipeline alone. The property names must be the ones the
+built schema uses, not the flag spellings.
+
 `sort` is why this is a check and not a formality. It reads as a pure text
 utility, and `--compress-program=PROG` runs PROG — sort spills to temporary
 files past its buffer and pipes each one through the named program. It had gone

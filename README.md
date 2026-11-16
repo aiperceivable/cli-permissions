@@ -148,7 +148,7 @@ Build the same archive locally with `tools/package.sh` (or
 Verify before unpacking:
 
 ```sh
-shasum -a 256 -c cli-permissions-v0.1.1.tar.gz.sha256
+shasum -a 256 -c cli-permissions-v0.2.0.tar.gz.sha256
 ```
 
 The archive contains `manifest.json`, `overlays/`, `schemas/` and the repository

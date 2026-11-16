@@ -11,6 +11,15 @@ the overlay format version.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-16
+
+### Fixed
+- `sort` (Apple and GNU) scopes its approval ceiling to `--output` with
+  `approval_flags: ["output"]`. `0.1.1` stated `requires_approval: true` without
+  a flag list, which a consumer must read as "every call needs approval", so a
+  read-only `sort file` prompted where `0.1.0` had not. The ceiling stays; only
+  the calls that send the writing flag reach it.
+
 ## [0.1.1] - 2026-11-16
 
 ### Fixed
