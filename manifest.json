@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "name": "cli-permissions",
   "description": "Reviewed CLI command-variant facts for agent permission rules and governed execution.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "overlay_directory": "overlays",
   "homepage": "https://github.com/aiperceivable/cli-permissions",
   "license": "Apache-2.0"

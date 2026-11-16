@@ -112,17 +112,23 @@ with a `v` prefix (`v0.2.0`). Both must describe the same bytes, so the tag is
 derived from the manifest rather than typed: `tools/tag-release.sh` does that
 and refuses the release when they disagree.
 
-Choose the increment by what a consumer would have to do:
+Choose the increment by what adopting the release can do to admission:
 
-- **patch** — descriptions, provenance, metadata; no admission behaviour changes.
-- **minor** — a command, flag or route is added, so the declared surface
-  *widens*. A previously refused call may now be allowed; that is a security
-  relevant change, not a patch.
-- **major** — routes are removed or tightened, an annotation changes meaning
-  (for example `readonly` becomes `destructive`), or `schema_version` changes.
+- **patch** — a correction that can only *deny more*: a missing conflict, a
+  missing approval ceiling, a description or provenance fix. Adopting it cannot
+  allow a call the previous release refused.
+- **minor** — the declared surface *widens*: a command, flag or route is added,
+  so a previously refused call may now be allowed. That is a security-relevant
+  change, not a patch.
+- **major** — an older consumer must change code to keep reading the corpus:
+  `schema_version`, the manifest structure, or overlay semantics. Reserve it for
+  format work; the corpus version and the format version stay separate numbers,
+  and a 1.0.0 corpus intentionally requires a consumer that knows the new format.
 
-Format versions are not release versions. Adding overlays or correcting flags
-never changes `schema_version`; it changes `version`.
+The direction decides, not the size of the diff: rejecting one more flag
+combination is a patch, and accepting one more flag is a minor. Format versions
+are not release versions. Adding overlays or correcting flags never changes
+`schema_version`; it changes `version`.
 
 ## Releasing
 

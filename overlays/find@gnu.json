@@ -618,7 +618,8 @@
       "type": "boolean",
       "conflicts_with": [
         "-depth",
-        "-delete"
+        "-delete",
+        "-d"
       ],
       "description": "True. If the file is a directory, do not descend into it. If -depth is in effect, -prune has no effect -- but it still evaluates true, so an expression relying on its truth value is unaffected. The binary states the -depth interaction outright when refusing -delete -prune."
     },

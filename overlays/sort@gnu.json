@@ -345,6 +345,7 @@
     "readonly": false,
     "destructive": false,
     "idempotent": true,
+    "requires_approval": true,
     "open_world": false
   }
 }

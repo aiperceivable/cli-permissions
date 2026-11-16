@@ -11,6 +11,25 @@ the overlay format version.
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-16
+
+### Fixed
+- `sort` (Apple and GNU) states `requires_approval: true`. The ceiling was
+  already implied by the approval-flag list, but a verified entry that omits an
+  annotation forces a consumer to treat it as unknown, and the corpus rule is to
+  state all five. `--compress-program` is still refused at the flag level
+  (`risk: executes`), so the executing path is unchanged.
+- `find@gnu` lists `-d` in `-prune`'s conflicts as well as in `-d`'s own list.
+  `-d` is recorded in the same entry as a synonym of `-depth`, and the conflict
+  with `-prune` was already verified behaviourally; only one direction carried
+  it. A consumer reading either side now sees the same refusal.
+
+### Changed
+- Release assets are named after the repository (`<repo>.tar.gz`), derived from
+  `GITHUB_REPOSITORY` in the release workflow. A fork publishes under its own
+  name with no consumer configuration. `tools/package.sh` is the local entry
+  point; `--asset-name` overrides the derived name.
+
 ## [0.1.0] - 2026-11-16
 
 First tagged release. 44 reviewed entries across 22 commands, covering the

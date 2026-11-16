@@ -2,6 +2,7 @@
 import importlib.util
 import io
 import json
+import subprocess
 import sys
 import tarfile
 import tempfile
@@ -17,6 +18,7 @@ sys.modules[SPEC.name] = PACKAGING
 SPEC.loader.exec_module(PACKAGING)
 
 ASSET = ROOT.name
+VERSION = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))["version"]
 
 MANIFEST = {
     "schema_version": "1.0",
@@ -120,11 +122,27 @@ class AssetNameTests(unittest.TestCase):
                 0,
             )
             self.assertTrue(
-                Path(directory, "team-corpus-v0.1.0.tar.gz").is_file()
+                Path(directory, "team-corpus-v{}.tar.gz".format(VERSION)).is_file()
             )
             self.assertTrue(
-                Path(directory, "team-corpus-v0.1.0.tar.gz.sha256").is_file()
+                Path(directory, "team-corpus-v{}.tar.gz.sha256".format(VERSION)).is_file()
             )
 
     def test_asset_name_rejects_a_path_segment(self):
         self.assertEqual(PACKAGING.main(["--asset-name", "../escape"]), 1)
+
+
+class ShellEntryPointTests(unittest.TestCase):
+    """The shell wrapper must build exactly what the packager builds."""
+
+    def test_package_sh_builds_the_repository_asset(self):
+        with tempfile.TemporaryDirectory() as directory:
+            result = subprocess.run(
+                ["sh", str(ROOT / "tools/package.sh"), "--out", directory],
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertTrue(
+                Path(directory, "{}-v{}.tar.gz".format(ROOT.name, VERSION)).is_file()
+            )

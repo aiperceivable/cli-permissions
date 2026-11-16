@@ -142,10 +142,13 @@ from a repository URL. A fork that keeps this workflow publishes
 that is a different corpus rather than a mirror should also change `name` in
 `manifest.json`, which is the name an installation records.
 
+Build the same archive locally with `tools/package.sh` (or
+`python3 tools/package-corpus.py`); `--check` builds twice and compares digests.
+
 Verify before unpacking:
 
 ```sh
-shasum -a 256 -c cli-permissions-v0.1.0.tar.gz.sha256
+shasum -a 256 -c cli-permissions-v0.1.1.tar.gz.sha256
 ```
 
 The archive contains `manifest.json`, `overlays/`, `schemas/` and the repository
