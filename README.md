@@ -174,6 +174,60 @@ Schema tests require `jsonschema`; without it they are explicitly skipped. The
 native behavior tests run only on the reviewed macOS 26.3 (25D125) build and
 are skipped on other hosts. They check bounded fixtures, not every invocation.
 
+## Development
+
+### Layout
+
+| Path | What lives there |
+| --- | --- |
+| `overlays/` | one reviewed JSON file per `(command, variant)` |
+| `schemas/` | manifest and overlay JSON Schemas, the contract a consumer reads |
+| `tools/` | `derive-permissions.py` (reference consumer), `package-corpus.py` and `package.sh`, `tag-release.sh` |
+| `tests/` | regression tests, including schema validation of every document |
+| `.github/workflows/` | `ci.yml` on every push, `release.yml` on `v*` tags |
+
+### Local checks
+
+```bash
+python3 -m pip install jsonschema
+CI_REQUIRE_SCHEMA=1 python3 -m unittest discover -s tests -v
+tools/package.sh --check
+```
+
+`CI_REQUIRE_SCHEMA=1` turns a missing `jsonschema` into a failure instead of a
+skip: a skipped schema test means the corpus was never validated against the
+format it claims. `--check` builds the archive twice and compares digests, so a
+non-deterministic change (a timestamp, an unsorted entry) fails here rather than
+in a release.
+
+### Cutting a release
+
+1. Bump `version` in `manifest.json` using the rules in
+   [CONTRIBUTING.md](CONTRIBUTING.md#version-numbers): a patch can only deny
+   more, a minor widens the declared surface, a major changes the format.
+2. Promote `## [Unreleased]` in [`CHANGELOG.md`](CHANGELOG.md) to
+   `## [<version>]` and say what a consumer can rely on after updating. The
+   release notes add the machine-readable overlay diff; this section is the part
+   a script cannot write.
+3. Commit and merge to `main`, and let `ci.yml` pass on that commit.
+4. Run `tools/tag-release.sh --push`.
+
+The tag is derived from `manifest.json`, never typed. Before creating it, the
+script checks the working tree, `origin/main`, the changelog section, monotonic
+version order, a free tag name and a reproducible build. `release.yml` then
+re-checks the same facts, runs the tests, builds `<repo>-v<version>.tar.gz`,
+attaches it with its `.sha256` plus the stable alias `<repo>.tar.gz`, and
+composes notes from the overlay diff and the changelog section.
+
+`workflow_dispatch` accepts an existing tag only, for republishing a release
+whose assets failed to upload. It never accepts a version that has no tag.
+
+**Failure policy.** A published tag is never moved and an uploaded asset is
+never replaced: both would make every recorded sha256 meaningless. If a release
+is wrong, cut the next patch. The full policy, including the one exception for a
+tag that was rejected before any asset existed, is in
+[CONTRIBUTING.md](CONTRIBUTING.md#failure-policy).
+
 ## Contributing
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md) first, then the
