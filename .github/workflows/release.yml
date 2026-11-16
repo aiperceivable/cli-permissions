@@ -107,13 +107,18 @@ jobs:
       - name: Build the archive
         run: |
           set -euo pipefail
-          .venv/bin/python tools/package-corpus.py --check
-          .venv/bin/python tools/package-corpus.py --out dist
+          # The asset is named after the repository, because that is what a
+          # consumer resolves from the repository URL. A fork therefore
+          # publishes under its own name without any consumer configuration.
+          asset="${GITHUB_REPOSITORY#*/}"
+          version="${{ steps.identity.outputs.version }}"
+          .venv/bin/python tools/package-corpus.py --check --asset-name "${asset}"
+          .venv/bin/python tools/package-corpus.py --out dist --asset-name "${asset}"
           # Stable name so a consumer can fetch the newest release without an
-          # API call: /releases/latest/download/cli-permissions.tar.gz
-          cp dist/cli-permissions-v*.tar.gz dist/cli-permissions.tar.gz
+          # API call: /releases/latest/download/<repo>.tar.gz
+          cp "dist/${asset}-v${version}.tar.gz" "dist/${asset}.tar.gz"
           cd dist
-          shasum -a 256 cli-permissions.tar.gz > cli-permissions.tar.gz.sha256
+          shasum -a 256 "${asset}.tar.gz" > "${asset}.tar.gz.sha256"
 
       - name: Compose release notes
         run: |
@@ -121,7 +126,8 @@ jobs:
           tag="${{ steps.identity.outputs.tag }}"
           version="${{ steps.identity.outputs.version }}"
           previous=$(git tag --list 'v*' --sort=-v:refname | grep -vxF "${tag}" | head -n 1 || true)
-          digest=$(cut -d' ' -f1 "dist/cli-permissions-v${version}.tar.gz.sha256")
+          asset="${GITHUB_REPOSITORY#*/}"
+          digest=$(cut -d' ' -f1 "dist/${asset}-v${version}.tar.gz.sha256")
           {
             echo "## Corpus ${version}"
             echo
@@ -141,7 +147,7 @@ jobs:
             echo "### Verify before installing"
             echo
             echo '```sh'
-            echo "shasum -a 256 -c cli-permissions-v${version}.tar.gz.sha256"
+            echo "shasum -a 256 -c ${asset}-v${version}.tar.gz.sha256"
             echo "# expected sha256: ${digest}"
             echo '```'
           } > NOTES.md
@@ -153,11 +159,12 @@ jobs:
           set -euo pipefail
           tag="${{ steps.identity.outputs.tag }}"
           version="${{ steps.identity.outputs.version }}"
+          asset="${GITHUB_REPOSITORY#*/}"
           gh release create "${tag}" \
             --verify-tag \
-            --title "cli-permissions ${version}" \
+            --title "${asset} ${version}" \
             --notes-file NOTES.md \
-            "dist/cli-permissions-v${version}.tar.gz" \
-            "dist/cli-permissions-v${version}.tar.gz.sha256" \
-            "dist/cli-permissions.tar.gz" \
-            "dist/cli-permissions.tar.gz.sha256"
+            "dist/${asset}-v${version}.tar.gz" \
+            "dist/${asset}-v${version}.tar.gz.sha256" \
+            "dist/${asset}.tar.gz" \
+            "dist/${asset}.tar.gz.sha256"

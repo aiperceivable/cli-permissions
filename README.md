@@ -132,9 +132,15 @@ sha256 for a release source.
 
 Releases are cut by tag; the procedure and the version-increment rules are in
 [CONTRIBUTING.md](CONTRIBUTING.md#releasing). Each release attaches
-`cli-permissions-v<version>.tar.gz` with a `.sha256` sidecar, plus the stable
-alias `cli-permissions.tar.gz` so the newest release can be fetched without an
-API call from `/releases/latest/download/`.
+`<repo>-v<version>.tar.gz` with a `.sha256` sidecar, plus the stable alias
+`<repo>.tar.gz` so the newest release can be fetched without an API call from
+`/releases/latest/download/`.
+
+The asset name is the repository name, because that is what a consumer resolves
+from a repository URL. A fork that keeps this workflow publishes
+`team-corpus.tar.gz` under its own name with no consumer configuration; a fork
+that is a different corpus rather than a mirror should also change `name` in
+`manifest.json`, which is the name an installation records.
 
 Verify before unpacking:
 

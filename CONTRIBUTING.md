@@ -139,8 +139,15 @@ corpus but publishes nothing.
    the changelog section, monotonic version order, a unique tag name and that
    the archive builds, then creates and pushes the tag.
 5. The release workflow re-verifies the same facts, builds the archive, and
-   attaches `cli-permissions-v<version>.tar.gz`, its `.sha256`, the stable
-   alias `cli-permissions.tar.gz` and its `.sha256`.
+   attaches `<repo>-v<version>.tar.gz`, its `.sha256`, the stable alias
+   `<repo>.tar.gz` and its `.sha256`.
+
+The asset name is derived from the repository name by the workflow, because a
+consumer resolves `<repo>.tar.gz` from the repository URL. A fork therefore
+publishes under its own name without touching either repository. A fork that is
+a distinct corpus rather than a mirror should also change `name` in
+`manifest.json`: that is the name an installation records and the stable alias
+does not.
 
 `workflow_dispatch` accepts an **existing** tag only, for republishing a
 release whose assets failed to upload. It never accepts a version number that

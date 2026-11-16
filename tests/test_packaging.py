@@ -16,6 +16,8 @@ PACKAGING = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = PACKAGING
 SPEC.loader.exec_module(PACKAGING)
 
+ASSET = ROOT.name
+
 MANIFEST = {
     "schema_version": "1.0",
     "name": "fixture",
@@ -28,16 +30,16 @@ MANIFEST = {
 class ArchiveTests(unittest.TestCase):
     def test_archive_is_byte_identical_across_builds(self):
         manifest = PACKAGING.read_manifest(ROOT)
-        first = PACKAGING.archive_bytes(ROOT, manifest)
-        second = PACKAGING.archive_bytes(ROOT, manifest)
+        first = PACKAGING.archive_bytes(ROOT, manifest, ASSET)
+        second = PACKAGING.archive_bytes(ROOT, manifest, ASSET)
         self.assertEqual(first, second)
 
     def test_archive_publishes_manifest_and_every_overlay(self):
         manifest = PACKAGING.read_manifest(ROOT)
-        payload = PACKAGING.archive_bytes(ROOT, manifest)
+        payload = PACKAGING.archive_bytes(ROOT, manifest, ASSET)
         with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as archive:
             names = archive.getnames()
-        top = "cli-permissions-{}".format(manifest["version"])
+        top = "{}-{}".format(ASSET, manifest["version"])
         self.assertIn("{}/manifest.json".format(top), names)
         self.assertIn("{}/schemas/corpus-manifest.schema.json".format(top), names)
         published = [name for name in names
@@ -47,7 +49,7 @@ class ArchiveTests(unittest.TestCase):
 
     def test_archive_preserves_no_timestamps_or_ownership(self):
         manifest = PACKAGING.read_manifest(ROOT)
-        payload = PACKAGING.archive_bytes(ROOT, manifest)
+        payload = PACKAGING.archive_bytes(ROOT, manifest, ASSET)
         with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as archive:
             for member in archive.getmembers():
                 self.assertEqual(member.mtime, 0, member.name)
@@ -100,3 +102,29 @@ class ManifestTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+class AssetNameTests(unittest.TestCase):
+    """The asset name is the repository name: that is what a consumer resolves
+    from the repository URL, so a fork publishes under its own name."""
+
+    def test_asset_name_is_derived_from_the_repository(self):
+        self.assertEqual(
+            PACKAGING.asset_name(MANIFEST, "team-corpus"),
+            "team-corpus-v0.1.0.tar.gz",
+        )
+
+    def test_asset_name_can_be_overridden_on_the_command_line(self):
+        with tempfile.TemporaryDirectory() as directory:
+            self.assertEqual(
+                PACKAGING.main(["--out", directory, "--asset-name", "team-corpus"]),
+                0,
+            )
+            self.assertTrue(
+                Path(directory, "team-corpus-v0.1.0.tar.gz").is_file()
+            )
+            self.assertTrue(
+                Path(directory, "team-corpus-v0.1.0.tar.gz.sha256").is_file()
+            )
+
+    def test_asset_name_rejects_a_path_segment(self):
+        self.assertEqual(PACKAGING.main(["--asset-name", "../escape"]), 1)

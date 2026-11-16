@@ -103,9 +103,11 @@ def validate_overlays(root: Path, manifest: Dict[str, object]) -> int:
     return count
 
 
-def collect_entries(root: Path, manifest: Dict[str, object]) -> List[Tuple[str, Path, bool]]:
+def collect_entries(
+    root: Path, manifest: Dict[str, object], asset: str
+) -> List[Tuple[str, Path, bool]]:
     """Return (archive name, source path, is_directory) in deterministic order."""
-    top = "cli-permissions-{}".format(manifest["version"])
+    top = "{}-{}".format(asset, manifest["version"])
     entries: List[Tuple[str, Path, bool]] = [(top, root, True)]
     for name in ARCHIVE_DIRECTORIES:
         directory = root / name
@@ -130,9 +132,9 @@ def collect_entries(root: Path, manifest: Dict[str, object]) -> List[Tuple[str, 
     return entries
 
 
-def archive_bytes(root: Path, manifest: Dict[str, object]) -> bytes:
+def archive_bytes(root: Path, manifest: Dict[str, object], asset: str) -> bytes:
     """Serialise the corpus to tar.gz with every varying field normalised."""
-    entries = collect_entries(root, manifest)
+    entries = collect_entries(root, manifest, asset)
     total = 0
     raw = io.BytesIO()
     with gzip.GzipFile(filename="", mode="wb", fileobj=raw, mtime=0, compresslevel=9) as compressed:
@@ -164,16 +166,18 @@ def archive_bytes(root: Path, manifest: Dict[str, object]) -> bytes:
     return raw.getvalue()
 
 
-def asset_name(manifest: Dict[str, object]) -> str:
-    return "cli-permissions-v{}.tar.gz".format(manifest["version"])
+def asset_name(manifest: Dict[str, object], asset: str) -> str:
+    """A release asset is named after its repository, which is what a consumer
+    resolves from the repository URL. A fork therefore needs no configuration."""
+    return "{}-v{}.tar.gz".format(asset, manifest["version"])
 
 
-def write_artifact(root: Path, out_dir: Path) -> Path:
+def write_artifact(root: Path, out_dir: Path, asset: str) -> Path:
     manifest = read_manifest(root)
     validate_overlays(root, manifest)
     out_dir.mkdir(parents=True, exist_ok=True)
-    destination = out_dir / asset_name(manifest)
-    payload = archive_bytes(root, manifest)
+    destination = out_dir / asset_name(manifest, asset)
+    payload = archive_bytes(root, manifest, asset)
     destination.write_bytes(payload)
     digest = hashlib.sha256(payload).hexdigest()
     destination.with_name(destination.name + ".sha256").write_text(
@@ -184,12 +188,12 @@ def write_artifact(root: Path, out_dir: Path) -> Path:
     return destination
 
 
-def check_reproducible(root: Path) -> None:
+def check_reproducible(root: Path, asset: str) -> None:
     manifest = read_manifest(root)
     validate_overlays(root, manifest)
     with tempfile.TemporaryDirectory() as directory:
-        first = archive_bytes(root, manifest)
-        second = archive_bytes(root, manifest)
+        first = archive_bytes(root, manifest, asset)
+        second = archive_bytes(root, manifest, asset)
     if first != second:
         raise PackageError("packaging is not reproducible: two builds differ")
     digest = hashlib.sha256(first).hexdigest()
@@ -201,16 +205,25 @@ def main(argv: List[str]) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", default=str(ROOT / "dist"), help="output directory")
     parser.add_argument(
+        "--asset-name",
+        default=ROOT.name,
+        help="repository name used in the asset filename (default: %(default)s)",
+    )
+    parser.add_argument(
         "--check",
         action="store_true",
         help="build twice in memory and compare digests instead of writing files",
     )
     arguments = parser.parse_args(argv)
+    asset = arguments.asset_name
+    if not asset or "/" in asset or asset.startswith("."):
+        print("error: --asset-name must be a non-empty path segment", file=sys.stderr)
+        return 1
     try:
         if arguments.check:
-            check_reproducible(ROOT)
+            check_reproducible(ROOT, asset)
         else:
-            write_artifact(ROOT, Path(arguments.out))
+            write_artifact(ROOT, Path(arguments.out), asset)
     except PackageError as error:
         print("error: {}".format(error), file=sys.stderr)
         return 1
