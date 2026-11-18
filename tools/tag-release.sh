@@ -91,7 +91,23 @@ if git ls-remote --tags --exit-code origin "refs/tags/${TAG}" >/dev/null 2>&1; t
     die "tag ${TAG} already exists on origin"
 fi
 if [ "${local_tag_exists}" -eq 1 ]; then
-    die "tag ${TAG} already exists locally; delete it only if it was never pushed"
+    tag_commit="$(git rev-parse "${TAG}^{commit}")"
+    head_commit="$(git rev-parse HEAD)"
+    if [ "${tag_commit}" != "${head_commit}" ]; then
+        die "tag ${TAG} exists locally at $(git rev-parse --short "${TAG}^{commit}"), not HEAD (${head_commit:0:12}); a tag must not be moved, so delete it only if it was never pushed"
+    fi
+    if [ "${PUSH}" -eq 1 ]; then
+        # A previous run created the tag and stopped at "next: git push". That
+        # is a normal two-step, and refusing here stranded the release behind a
+        # second invocation. The tag is at HEAD and unpublished, so publishing
+        # it is exactly what this run was asked to do.
+        echo "Tag ${TAG} already exists at HEAD and is not published; pushing it."
+        python3 tools/package-corpus.py --check
+        git push origin "${TAG}"
+        echo "Pushed ${TAG}."
+        exit 0
+    fi
+    die "tag ${TAG} exists locally but has not been published; re-run with --push to publish it"
 fi
 
 previous="$(git tag --list 'v*' --sort=-v:refname | head -n 1 || true)"
